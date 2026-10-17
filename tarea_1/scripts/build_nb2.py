@@ -13,7 +13,7 @@ md("""
 Flujo del notebook:
 1. **Partición 70/15/15** estratificada (`random_state=42`). Se hace primero para que el conjunto de **test quede aislado desde el inicio**: ningún paso posterior lo usa para entrenar ni para elegir hiperparámetros.
 2. **Línea base zero-shot** (`Recognai/bert-base-spanish-wwm-cased-xnli`) sobre 40 titulares del test.
-3. **Supervisión débil con LLM** (Gemini) sobre el dataset completo → `datos/etiquetas_llm.csv` + **auditoría humana de 20 casos**.
+3. **Supervisión débil con LLM** (Qwen2.5-1.5B-Instruct, ejecutado en local) sobre el dataset completo → `datos/etiquetas_llm.csv` + **auditoría humana de 20 casos**.
 4. **Fine-tuning de BETO** (`dccuchile/bert-base-spanish-wwm-cased`) entrenado con las **etiquetas del LLM** (train/val).
 5. **Evaluación final en test** contra la etiqueta editorial (sección del diario), que es independiente del LLM.
 6. **Comparativa** zero-shot vs. LLM vs. fine-tuned y decisión.
@@ -74,62 +74,63 @@ print(classification_report(zs_df.etiqueta, zs_df.pred_zs, digits=3, zero_divisi
 """)
 
 md("""
-## 3. Supervisión débil con un LLM (Gemini)
-Prompt estructurado con definición de cada categoría, salida **JSON con esquema fijo** y lotes de 25 noticias (menos llamadas → respeta el límite gratuito).
-Se envían titular + bajada (más contexto para el etiquetador). La clave se lee de `.env` (no se sube a GitHub).
-Si `datos/etiquetas_llm.csv` ya existe, se reutiliza para no repetir llamadas al API.
+## 3. Supervisión débil con un LLM local (Qwen2.5-1.5B-Instruct)
+- Se usa **Qwen local** con `transformers` (sin API ni claves; corre en CPU).
+- **Prompt estructurado** con titular + bajada y las 4 categorías permitidas, pidiendo una sola palabra.
+- En lugar de leer texto libre, se calcula la **log-verosimilitud de cada una de las 4 respuestas posibles** y se normaliza con softmax: así el LLM **solo puede** devolver una categoría válida y la `confianza` es una probabilidad real.
+- En una prueba previa, un prompt de sistema largo con letras A/B/C/D hacía que el modelo respondiera siempre lo mismo (~22 % de acierto): con modelos pequeños, un prompt corto y directo funciona mejor.
+- Si `datos/etiquetas_llm.csv` ya existe, se reutiliza (el etiquetado toma ~15 min en CPU).
 """)
 code(r"""
-PROMPT = '''Eres un editor de un diario peruano. Clasifica cada noticia en EXACTAMENTE una de estas 4 categorías:
-- politica: Gobierno, Congreso, elecciones, partidos, justicia y fiscalía ligada a políticos, política exterior del Estado.
-- economia: mercados, dólar, empresas, empleo, impuestos, inflación, comercio, finanzas personales, minería y pesca como actividad económica.
-- deportes: fútbol y cualquier deporte, clubes, selecciones, deportistas, torneos.
-- ciencia_tecnologia: ciencia, espacio, salud desde la investigación, medio ambiente científico, tecnología, apps, IA, videojuegos, celulares.
-Devuelve, para cada id, la categoría y tu confianza entre 0 y 1.
+import copy, torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
-Noticias:
-{noticias}'''
-
+LLM_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
+NOMBRES_LLM = ["política", "economía", "deportes", "ciencia"]   # mismo orden que CATS
+PROMPT = ("Noticia de un diario peruano:\nTitular: {titular}\nBajada: {bajada}\n\n"
+          "¿De qué tema trata? Elige entre política, economía, deportes o ciencia (incluye tecnología). "
+          "Responde sólo con una palabra.")
 ARCHIVO_LLM = DATOS / "etiquetas_llm.csv"
+
 if ARCHIVO_LLM.exists():
     llm = pd.read_csv(ARCHIVO_LLM)
     print("Etiquetas LLM cargadas desde disco:", llm.shape)
 else:
-    from dotenv import load_dotenv
-    from google import genai
-    from google.genai import types
-    load_dotenv()
-    cliente = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-    LLM_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
-    esquema = {"type": "array", "items": {"type": "object", "properties": {
-        "id": {"type": "integer"}, "etiqueta": {"type": "string", "enum": CATS}, "confianza": {"type": "number"}},
-        "required": ["id", "etiqueta", "confianza"]}}
-    salidas, tiempos = [], []
-    for ini in range(0, len(df), 25):
-        lote = df.iloc[ini:ini + 25]
-        texto = "\n".join(f"{i}. {r.titular} — {r.bajada}" for i, r in lote.iterrows())
-        for intento in range(3):
-            try:
-                t0 = time.perf_counter()
-                resp = cliente.models.generate_content(model=LLM_MODEL, contents=PROMPT.format(noticias=texto),
-                    config=types.GenerateContentConfig(temperature=0, response_mime_type="application/json", response_schema=esquema))
-                tiempos.append((time.perf_counter() - t0) / len(lote))
-                salidas += json.loads(resp.text); break
-            except Exception as e:
-                print("reintento", ini, e.__class__.__name__); time.sleep(20)
-        time.sleep(4)   # respeta el límite de solicitudes por minuto del plan gratuito
-    pred = pd.DataFrame(salidas).drop_duplicates("id").set_index("id")
-    llm = pd.DataFrame({"titular": df.titular, "etiqueta_llm": pred.etiqueta.reindex(df.index),
-                        "confianza": pred.confianza.reindex(df.index).round(3),
+    tok_llm = AutoTokenizer.from_pretrained(LLM_MODEL)
+    qwen = AutoModelForCausalLM.from_pretrained(LLM_MODEL, dtype=torch.float32).eval()
+    candidatos = [tok_llm.encode(n, add_special_tokens=False) for n in NOMBRES_LLM]
+
+    def etiquetar(titular, bajada):
+        texto = tok_llm.apply_chat_template([{"role": "user", "content": PROMPT.format(titular=titular, bajada=bajada)}],
+                                            add_generation_prompt=True, tokenize=False)
+        ids = tok_llm(texto, return_tensors="pt", add_special_tokens=False)["input_ids"]
+        with torch.no_grad():
+            out = qwen(ids, use_cache=True)
+            primero = out.logits[0, -1].log_softmax(-1)
+            puntajes = []
+            for c in candidatos:                      # log P(respuesta | prompt), token a token
+                lp = primero[c[0]].item()
+                if len(c) > 1:
+                    sig = qwen(torch.tensor([c[:-1]]), past_key_values=copy.deepcopy(out.past_key_values)).logits[0].log_softmax(-1)
+                    lp += sum(sig[i, c[i + 1]].item() for i in range(len(c) - 1))
+                puntajes.append(lp)
+        prob = torch.tensor(puntajes).softmax(-1)
+        return CATS[int(prob.argmax())], float(prob.max())
+
+    t0 = time.perf_counter()
+    res = [etiquetar(t, b) for t, b in zip(df.titular, df.bajada.fillna(""))]
+    lat = (time.perf_counter() - t0) / len(df)
+    llm = pd.DataFrame({"titular": df.titular, "etiqueta_llm": [r[0] for r in res], "confianza": [round(r[1], 4) for r in res],
                         "modelo_llm": LLM_MODEL, "fecha": datetime.now().strftime("%Y-%m-%d")})
     llm.to_csv(ARCHIVO_LLM, index=False, encoding="utf-8")
-    json.dump({"latencia_llm_s_por_titular": float(np.mean(tiempos))}, open(MODELO / "latencia_llm.json", "w"))
-    print("Etiquetas LLM generadas:", llm.shape)
+    json.dump({"latencia_llm_s_por_titular": lat}, open(MODELO / "latencia_llm.json", "w"))
+    del qwen
+    print(f"Etiquetas LLM generadas: {llm.shape}  ({lat:.2f} s por titular en CPU)")
 
 assert len(llm) == len(df) and (llm.titular.values == df.titular.values).all()
-print("Sin etiqueta:", llm.etiqueta_llm.isna().sum())
 df["etiqueta_llm"] = llm.etiqueta_llm.values
 df["confianza_llm"] = llm.confianza.values
+print(llm.confianza.describe().round(3))
 llm.head()
 """)
 
@@ -193,7 +194,7 @@ def metricas(p):
 
 modelo = AutoModelForSequenceClassification.from_pretrained(BASE_MODEL, num_labels=4, id2label=id2label, label2id=label2id)
 args = TrainingArguments(output_dir="resultados_trainer", num_train_epochs=4, per_device_train_batch_size=16,
-                         per_device_eval_batch_size=32, learning_rate=3e-5, weight_decay=0.01, warmup_ratio=0.1,
+                         per_device_eval_batch_size=32, learning_rate=3e-5, weight_decay=0.01, warmup_steps=0.1,
                          eval_strategy="epoch", save_strategy="epoch", load_best_model_at_end=True,
                          metric_for_best_model="f1_macro", save_total_limit=1, logging_strategy="epoch",
                          report_to="none", seed=SEED)
@@ -233,6 +234,14 @@ test_df.loc[test_df.etiqueta != test_df.pred_ft, ["titular", "etiqueta", "pred_f
 """)
 
 md("""
+### Reflexión por categoría
+- **Mejor: `deportes` (F1 = 1.00).** Su léxico es muy distintivo y no se cruza con otras secciones: nombres de clubes (Alianza Lima, Universitario), torneos (Liga 1, Clausura, Copa Libertadores), “EN VIVO”, “fixture”, “vóley”. Tanto el LLM como BETO la aciertan siempre.
+- **`ciencia_tecnologia` (F1 ≈ 0.97)** también se separa bien por su vocabulario (científicos, astrónomos, NASA, planeta, IA). Su único error es *“Elecciones 2026: así puedes usar la IA…”*: la palabra “Elecciones” arrastra la predicción a política.
+- **Peor: `economia` (recall ≈ 0.67) y `politica` (precisión ≈ 0.70).** Casi todos los errores son **economía → política**: titulares de *política económica* que nombran a un actor político (Keiko Fujimori, el Senado, la oposición, la Contraloría, un ministro del MEF) aunque el tema sea sueldo mínimo, presupuesto o reformas económicas. El titular pone en primer plano **quién** habla y no **de qué** se habla.
+- **Causa de fondo:** el LLM que generó las etiquetas de entrenamiento comete exactamente el mismo sesgo (16 notas de economía etiquetadas como política en la tabla cruzada de arriba) y el modelo ajustado lo **hereda**. Es el costo típico de la supervisión débil: el modelo aprende la frontera del etiquetador, no la del diario.
+""")
+
+md("""
 ## 6. Comparativa y decisión
 Se añade como referencia adicional la línea base clásica vista en clase (**TF-IDF + regresión logística**), entrenada con las mismas etiquetas del LLM.
 """)
@@ -260,8 +269,8 @@ lat_llm = json.load(open(MODELO / "latencia_llm.json"))["latencia_llm_s_por_titu
 tabla = pd.DataFrame([
     {"modelo": "Zero-shot (BERT-es XNLI)", "evaluado_en": "40 de test", "accuracy": acc_zs, "f1_macro": f1_zs,
      "latencia_ms_titular": zs_lat * 1000, "costo": "Gratis, CPU local, 4 pasadas NLI por titular"},
-    {"modelo": "LLM débil (Gemini)", "evaluado_en": f"test completo ({len(test_df)})", "accuracy": acc_llm, "f1_macro": f1_llm,
-     "latencia_ms_titular": lat_llm * 1000, "costo": "API externa, cuota/pago por token, requiere internet"},
+    {"modelo": "LLM débil (Qwen2.5-1.5B local)", "evaluado_en": f"test completo ({len(test_df)})", "accuracy": acc_llm, "f1_macro": f1_llm,
+     "latencia_ms_titular": lat_llm * 1000, "costo": "Gratis pero pesado: 1.5B parámetros (~6 GB RAM), 4 pasadas por titular"},
     {"modelo": "TF-IDF + Reg. logística", "evaluado_en": f"test completo ({len(test_df)})", "accuracy": acc_tf, "f1_macro": f1_tf,
      "latencia_ms_titular": tf_lat * 1000, "costo": "Gratis, CPU, < 5 MB"},
     {"modelo": "BETO fine-tuned", "evaluado_en": f"test completo ({len(test_df)})", "accuracy": acc_ft, "f1_macro": f1_ft,
@@ -279,6 +288,20 @@ resumen = {"f1_macro_test": round(f1_ft, 3), "accuracy_test": round(acc_ft, 3), 
 json.dump(resumen, open(MODELO / "metricas.json", "w"), indent=2, ensure_ascii=False)
 tabla.to_csv(MODELO / "comparativa.csv", index=False)
 print(f"RESULTADOS -> F1 Macro: {f1_ft:.3f} | Zero-shot: {f1_zs:.3f} | Acuerdo LLM-Humano: {acuerdo_n}/20")
+""")
+
+
+md("""
+### Decisión para un entorno real
+| Criterio | Zero-shot | LLM (Qwen 1.5B) | TF-IDF + LR | **BETO fine-tuned** |
+|---|---|---|---|---|
+| Precisión (F1 macro) | la más baja | la más alta | media | alta |
+| Latencia por titular (CPU) | ~140 ms | ~2.4 s | < 1 ms | ~30 ms |
+| Recursos | 440 MB | ~6 GB de RAM | < 5 MB | ~420 MB |
+
+**Elegiría BETO fine-tuned para producción.** Queda a pocos puntos del LLM, pero es **~75 veces más rápido**, cabe en una laptop o un servidor pequeño sin GPU, es determinista y no depende de prompts. El LLM conviene como **etiquetador offline** (para crear o ampliar datos de entrenamiento), no para servir cada consulta en vivo. TF-IDF + LR queda como **respaldo ultraligero** (es el que usa el dashboard si no están los pesos de BETO). El zero-shot sirve solo como piso: sin ejemplos del dominio confunde mucho economía y política.
+
+**Mejora siguiente:** corregir el sesgo economía/política del LLM (prompt con ejemplos de política económica, o mezclar etiquetas editoriales en el entrenamiento) y reentrenar.
 """)
 
 nb["cells"] = C

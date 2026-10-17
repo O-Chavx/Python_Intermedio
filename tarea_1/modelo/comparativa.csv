@@ -1,0 +1,6 @@
+modelo,evaluado_en,accuracy,f1_macro,latencia_ms_titular,costo
+Zero-shot (BERT-es XNLI),40 de test,0.725,0.722,141.529,"Gratis, CPU local, 4 pasadas NLI por titular"
+LLM débil (Qwen2.5-1.5B local),test completo (60),0.917,0.918,2485.871,"Gratis pero pesado: 1.5B parámetros (~6 GB RAM), 4 pasadas por titular"
+TF-IDF + Reg. logística,test completo (60),0.8,0.8,0.155,"Gratis, CPU, < 5 MB"
+BETO fine-tuned,test completo (60),0.883,0.884,34.556,"Gratis, CPU local, ~420 MB de pesos"
+BETO fine-tuned,mismos 40 del zero-shot,0.925,0.926,34.556,idem

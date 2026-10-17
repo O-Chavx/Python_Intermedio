@@ -11,3 +11,6 @@ modelo/*.pt
 modelo/checkpoint-*/
 modelo/runs/
 resultados_trainer/
+
+# Logs locales
+*.log
