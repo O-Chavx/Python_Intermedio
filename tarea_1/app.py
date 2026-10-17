@@ -97,7 +97,7 @@ with col_out:
         fig_p = px.bar(probs, orientation="h", range_x=[0, 1], color=probs.index, color_discrete_map=COLORES,
                        labels={"value": "probabilidad", "index": ""})
         fig_p.update_layout(showlegend=False, height=230, margin=dict(l=0, r=0, t=10, b=0))
-        st.plotly_chart(fig_p, use_container_width=True)
+        st.plotly_chart(fig_p, width="stretch")
     elif boton:
         st.warning("Escribe un titular primero.")
 
@@ -106,15 +106,15 @@ st.subheader("📊 Distribución de categorías en la selección")
 g1, g2 = st.columns(2)
 dist = fil.etiqueta.value_counts().reindex(cats).fillna(0).rename_axis("categoria").reset_index(name="noticias")
 g1.plotly_chart(px.bar(dist, x="categoria", y="noticias", color="categoria", color_discrete_map=COLORES, text="noticias",
-                       title="Noticias por categoría").update_layout(showlegend=False), use_container_width=True)
+                       title="Noticias por categoría").update_layout(showlegend=False), width="stretch")
 cruce = fil.groupby(["etiqueta", "etiqueta_llm"]).size().reset_index(name="n")
 g2.plotly_chart(px.density_heatmap(cruce, x="etiqueta_llm", y="etiqueta", z="n", text_auto=True,
                                    title="Sección del diario vs. etiqueta del LLM",
-                                   labels={"etiqueta": "sección", "etiqueta_llm": "LLM"}), use_container_width=True)
+                                   labels={"etiqueta": "sección", "etiqueta_llm": "LLM"}), width="stretch")
 
 st.subheader("🗂️ Datos")
 cols = ["fecha", "etiqueta", "etiqueta_llm", "titular", "bajada", "seccion_original", "url"]
-st.dataframe(fil[cols], use_container_width=True, hide_index=True,
+st.dataframe(fil[cols], width="stretch", hide_index=True,
              column_config={"url": st.column_config.LinkColumn("url")})
 st.download_button("⬇️ Descargar CSV filtrado", fil[cols].to_csv(index=False).encode("utf-8"),
                    "noticias_filtradas.csv", "text/csv")
@@ -122,4 +122,4 @@ st.download_button("⬇️ Descargar CSV filtrado", fil[cols].to_csv(index=False
 comp = MODELO / "comparativa.csv"
 if comp.exists():
     with st.expander("Comparativa de modelos (test)"):
-        st.dataframe(pd.read_csv(comp), hide_index=True, use_container_width=True)
+        st.dataframe(pd.read_csv(comp), hide_index=True, width="stretch")
