@@ -42,7 +42,7 @@ import plotly.express as px
 import plotly.io as pio
 
 # Interactivo en VS Code/Jupyter + imagen PNG para que los gráficos se vean en GitHub
-pio.renderers.default = "plotly_mimetype+notebook+png"
+pio.renderers.default = "plotly_mimetype+png"
 pd.set_option("display.max_colwidth", 120)
 
 BASE = "https://larepublica.pe"
@@ -52,7 +52,11 @@ PAUSA = 1.5           # segundos entre solicitudes
 OBJETIVO_POR_CAT = 115  # se descarga un poco más de 100 para cubrir descartes
 DATOS = Path("datos"); RAW = DATOS / "raw"; RAW.mkdir(parents=True, exist_ok=True)
 
-FECHA_DESCARGA = datetime.now().strftime("%Y-%m-%d %H:%M")
+REDESCARGAR = False   # True = volver a pedir RSS/sitemaps; False = reutilizar el respaldo crudo de datos/raw/
+archivo_fecha = RAW / "fecha_descarga.txt"
+if REDESCARGAR or not archivo_fecha.exists():
+    archivo_fecha.write_text(datetime.now().strftime("%Y-%m-%d %H:%M"), encoding="utf-8")
+FECHA_DESCARGA = archivo_fecha.read_text(encoding="utf-8")
 print("Fecha de descarga:", FECHA_DESCARGA)
 """)
 
@@ -107,11 +111,13 @@ def limpiar(t):
 
 registros_rss = []
 for feed in FEEDS:
-    r = descargar(f"{BASE}/{feed}")
-    if r is None or r.status_code != 200:
-        print(f"{feed}: sin respuesta"); continue
-    (RAW / feed.replace("/", "_")).write_bytes(r.content)
-    soup = BeautifulSoup(r.content, "xml")
+    respaldo = RAW / feed.replace("/", "_")
+    if REDESCARGAR or not respaldo.exists():
+        r = descargar(f"{BASE}/{feed}")
+        if r is None or r.status_code != 200:
+            print(f"{feed}: sin respuesta"); continue
+        respaldo.write_bytes(r.content)
+    soup = BeautifulSoup(respaldo.read_bytes(), "xml")
     n = 0
     for it in soup.find_all("item"):          # formato RSS
         registros_rss.append({"url": limpiar(it.link.text), "titular": limpiar(it.title.text),
@@ -278,16 +284,22 @@ code(r"""
 df["largo_titular"] = df.titular.str.len()
 dist = df.etiqueta.value_counts().rename_axis("etiqueta").reset_index(name="noticias")
 fig1 = px.bar(dist, x="etiqueta", y="noticias", text="noticias", color="etiqueta",
-              title=f"Dataset balanceado: cada categoría aporta entre {dist.noticias.min()} y {dist.noticias.max()} titulares ({len(df)} en total)")
+              title=f"Dataset perfectamente balanceado: {dist.noticias.min()} titulares en cada una de las 4 categorías ({len(df)} en total)" if dist.noticias.nunique() == 1
+                    else f"Dataset casi balanceado: {dist.noticias.min()}–{dist.noticias.max()} titulares por categoría ({len(df)} en total)")
 fig1.update_layout(showlegend=False); fig1.show()
 """)
 code(r"""
-por_dia = df.groupby(["fecha", "etiqueta"]).size().reset_index(name="noticias")
-rango = (df.fecha.min(), df.fecha.max())
-pico = df.fecha.value_counts().idxmax()
-fig2 = px.bar(por_dia, x="fecha", y="noticias", color="etiqueta",
-              title=f"Las noticias se concentran en los últimos días ({rango[0]} a {rango[1]}); el pico es el {pico}")
+# Antigüedad de cada nota respecto a la fecha de descarga (los enlaces internos traen también notas antiguas)
+dias = (pd.Timestamp(FECHA_DESCARGA[:10]) - pd.to_datetime(df.fecha)).dt.days
+orden = ["0–7 días", "8–30 días", "1–6 meses", "más de 6 meses"]
+df["antiguedad"] = pd.cut(dias, [-1, 7, 30, 182, 10**5], labels=orden)
+por_rango = df.groupby(["antiguedad", "etiqueta"], observed=False).size().reset_index(name="noticias")
+pct_mes = (dias <= 30).mean()
+mas_vieja = df.groupby("etiqueta").fecha.min().idxmin()
+fig2 = px.bar(por_rango, x="antiguedad", y="noticias", color="etiqueta", barmode="group", category_orders={"antiguedad": orden},
+              title=f"El {pct_mes:.0%} de las notas es del último mes; {mas_vieja} arrastra las notas más antiguas (desde {df.fecha.min()})")
 fig2.show()
+print("Rango de fechas por categoría:"); display(df.groupby("etiqueta").fecha.agg(["min", "max"]))
 """)
 code(r"""
 med = df.groupby("etiqueta").largo_titular.median().sort_values()
