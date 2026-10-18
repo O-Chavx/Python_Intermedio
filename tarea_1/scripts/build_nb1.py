@@ -15,7 +15,7 @@ md("""
 | Parámetro | Valor |
 |---|---|
 | Opción elegida | **A – La República** |
-| Fecha de descarga | se registra automáticamente en la celda siguiente (`FECHA_DESCARGA`) |
+| Fecha de descarga | **17 de octubre de 2026** (también queda guardada en `datos/raw/fecha_descarga.txt`) |
 | URL base | https://larepublica.pe |
 | Canales RSS oficiales | `/rss/politica.xml`, `/rss/economia.xml`, `/rss/deportes.xml`, `/rss/ciencia.xml`, `/rss/home.xml` |
 | Sitemaps de noticias | `/sitemap/{seccion}.xml`, `/sitemap/web/{seccion}.xml`, `/sitemap/noticias.xml` |
