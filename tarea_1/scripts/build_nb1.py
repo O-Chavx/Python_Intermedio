@@ -20,12 +20,10 @@ md("""
 | Sitemaps de noticias | `/sitemap/{seccion}.xml`, `/sitemap/web/{seccion}.xml`, `/sitemap/noticias.xml` |
 | Categorías finales | `politica`, `economia`, `deportes`, `ciencia_tecnologia` |
 
-### Estrategia de extracción (y por qué)
+### Estrategia de extracción
 1. **robots.txt revisado**: permite `/rss/*`, `/sitemap/*` y las páginas de noticia; prohíbe la paginación de secciones (`/*/pag/*`, `/*/*/page/*`), búsquedas, `/tag/*` y `/archivo/*`.
-2. **RSS/sitemaps como semilla**: cada feed solo trae las ~10–25 notas más recientes, insuficiente para ~100 por categoría. Además `/rss/tecnologia.xml` responde **410 Gone**.
-3. **Bloqueo documentado**: el botón *“Ver más noticias”* de cada sección usa `/api/search/articles`, que responde **403 Forbidden** a clientes que no son navegador. **No se intenta evadir** ese bloqueo.
-4. **Solución**: se visitan las páginas de noticia (permitidas por robots.txt) obtenidas del RSS y se siguen los enlaces a *otras noticias de la misma sección* que cada artículo enlaza (“más noticias”, relacionadas). De cada página se lee `og:title`, `og:description` (bajada) y `mrf:sections`.
-5. **Buenas prácticas**: `User-Agent` descriptivo, pausa de **1.5 s** entre solicitudes, **máximo 1 reintento**, timeout de 20 s, y caché en `datos/raw/` para no volver a descargar lo ya descargado si el notebook se reejecuta.
+2. **Bloqueo documentado**: el botón *“Ver más noticias”* de cada sección usa `/api/search/articles`, que responde **403 Forbidden** a clientes que no son navegador. **No se intenta evadir** ese bloqueo.
+3. **Solución**: se visitan las páginas de noticia (permitidas por robots.txt) obtenidas del RSS y se siguen los enlaces a *otras noticias de la misma sección* que cada artículo enlaza (“más noticias”, relacionadas). De cada página se lee `og:title`, `og:description` (bajada) y `mrf:sections`.
 """)
 
 code(r"""
@@ -322,13 +320,6 @@ code(r"""
 muestra = final.sample(10, random_state=42).url
 estados = {u: (descargar(u, reintentos=0) or type("x", (), {"status_code": None})).status_code for u in muestra}
 print(Counter(estados.values()))
-""")
-
-md("""
-## Conclusiones de la Parte 1
-- Se usó RSS + sitemaps oficiales como semilla y páginas de noticia (permitidas en robots.txt) para alcanzar el volumen; el endpoint “Ver más” (403) **no** se usó.
-- Las notas fuera de las 4 categorías y las plantillas repetitivas se descartaron y se reportan en la tabla de descartes.
-- El dataset final queda balanceado y listo para el etiquetado con LLM en `02_clasificacion.ipynb`.
 """)
 
 nb["cells"] = C
