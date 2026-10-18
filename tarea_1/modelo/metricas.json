@@ -3,12 +3,12 @@
   "accuracy_test": 0.883,
   "f1_zero_shot": 0.722,
   "f1_llm_test": 0.918,
-  "acuerdo_llm_humano": "19/20",
-  "acuerdo_llm_humano_pct": 0.95,
+  "acuerdo_llm_humano": "20/20",
+  "acuerdo_llm_humano_pct": 1.0,
   "acuerdo_llm_seccion": 0.932,
   "n_train": 280,
   "n_val": 60,
   "n_test": 60,
   "modelo_base": "dccuchile/bert-base-spanish-wwm-cased",
-  "fecha": "2026-10-17"
+  "fecha": "2026-10-18"
 }

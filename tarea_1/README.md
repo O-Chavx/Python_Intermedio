@@ -29,11 +29,11 @@ Se recolectaron titulares reales de La República, se etiquetaron con un LLM loc
 | TF-IDF + regresión logística | test (60) | 0.800 | 0.800 | < 1 ms |
 | **BETO fine-tuned** `dccuchile/bert-base-spanish-wwm-cased` | test (60) | **0.884** | 0.883 | ~30 ms |
 
-- **Auditoría humana del LLM:** 19/20 (95 %) casos de acuerdo · **LLM vs. sección del diario:** 93.2 %.
+- **Auditoría humana del LLM:** 20/20 (100 %) casos de acuerdo · **LLM vs. sección del diario:** 93.2 %.
 - **Modelo elegido:** BETO fine-tuned (justificación en la sección 6 del notebook 2).
 
 ## 4. Hallazgos analíticos
-1. **Un LLM pequeño y local basta como etiquetador, pero tiene un sesgo claro.** Qwen2.5-1.5B coincide con la sección del diario en 93.2 % de las notas y en 19/20 (95 %) de la auditoría humana. Sus errores se concentran en **economía → política**: notas de *política económica* (presupuesto, sueldo mínimo, reformas del MEF) cuyo titular nombra a un actor político. BETO, entrenado con esas etiquetas, **hereda el mismo error**: es la frontera del etiquetador, no la del diario.
+1. **Un LLM pequeño y local basta como etiquetador, pero tiene un sesgo claro.** Qwen2.5-1.5B coincide con la sección del diario en 93.2 % de las notas y en 20/20 (100 %) de la auditoría humana. Sus errores se concentran en **economía → política**: notas de *política económica* (presupuesto, sueldo mínimo, reformas del MEF) cuyo titular nombra a un actor político. BETO, entrenado con esas etiquetas, **hereda el mismo error**: es la frontera del etiquetador, no la del diario.
 2. **El fine-tuning paga con muy pocos datos.** Con solo 280 titulares, BETO pasa de F1 0.722 (zero-shot) a **0.884** y es ~75× más rápido que el LLM. `deportes` es casi perfecta (léxico propio: clubes, torneos, “EN VIVO”), mientras que `economia` es la categoría más difícil. En el EDA, los titulares de ciencia son los más largos (mediana 120 caracteres frente a 100 en política): son titulares explicativos, del tipo “científicos descubren que…”.
 
 ## 5. Limitaciones técnicas
