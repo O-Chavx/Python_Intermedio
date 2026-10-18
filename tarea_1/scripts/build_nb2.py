@@ -1,4 +1,3 @@
-"""Genera 02_clasificacion.ipynb a partir de celdas definidas aqui (luego se ejecuta con nbconvert)."""
 import nbformat as nbf
 from pathlib import Path
 
@@ -86,7 +85,7 @@ import copy, torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 LLM_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
-NOMBRES_LLM = ["política", "economía", "deportes", "ciencia"]   # mismo orden que CATS
+NOMBRES_LLM = ["política", "economía", "deportes", "ciencia"]
 PROMPT = ("Noticia de un diario peruano:\nTitular: {titular}\nBajada: {bajada}\n\n"
           "¿De qué tema trata? Elige entre política, economía, deportes o ciencia (incluye tecnología). "
           "Responde sólo con una palabra.")
@@ -108,7 +107,7 @@ else:
             out = qwen(ids, use_cache=True)
             primero = out.logits[0, -1].log_softmax(-1)
             puntajes = []
-            for c in candidatos:                      # log P(respuesta | prompt), token a token
+            for c in candidatos:
                 lp = primero[c[0]].item()
                 if len(c) > 1:
                     sig = qwen(torch.tensor([c[:-1]]), past_key_values=copy.deepcopy(out.past_key_values)).logits[0].log_softmax(-1)
@@ -152,7 +151,6 @@ aud[["titular", "etiqueta_llm", "etiqueta_humana", "comentario"]]
 """)
 
 code(r"""
-# Acuerdo del LLM con la sección editorial del diario (todo el dataset)
 acuerdo_seccion = (df.etiqueta_llm == df.etiqueta).mean()
 print(f"LLM vs. sección del diario: {acuerdo_seccion:.1%} de coincidencia")
 pd.crosstab(df.etiqueta, df.etiqueta_llm, rownames=["sección"], colnames=["LLM"])
@@ -185,7 +183,7 @@ def a_dataset(d, col):
 train_lab = df.loc[train_df.index, ["titular", "etiqueta_llm"]].dropna()
 val_lab = df.loc[val_df.index, ["titular", "etiqueta_llm"]].dropna()
 ds_train, ds_val = a_dataset(train_lab, "etiqueta_llm"), a_dataset(val_lab, "etiqueta_llm")
-ds_test = a_dataset(test_df, "etiqueta")   # sólo se usa en la evaluación final
+ds_test = a_dataset(test_df, "etiqueta")
 print(len(ds_train), len(ds_val), len(ds_test))
 
 def metricas(p):
@@ -257,7 +255,7 @@ t0 = time.perf_counter(); pred_tfidf = tfidf.predict(test_df.titular); tf_lat = 
 acc_tf, f1_tf = accuracy_score(test_df.etiqueta, pred_tfidf), f1_score(test_df.etiqueta, pred_tfidf, average="macro")
 print(f"TF-IDF + LR en test: Accuracy={acc_tf:.3f}  F1 macro={f1_tf:.3f}")
 import joblib
-joblib.dump(tfidf, MODELO / "tfidf_lr.joblib")   # respaldo ligero para el dashboard si no están los pesos de BETO
+joblib.dump(tfidf, MODELO / "tfidf_lr.joblib")
 """)
 code(r"""
 test_llm = df.loc[test_df.index]

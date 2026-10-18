@@ -1,4 +1,3 @@
-"""Dashboard Tarea 1 – Clasificador de titulares peruanos (La República)."""
 import json
 import os
 from pathlib import Path
@@ -33,14 +32,13 @@ def cargar_metricas():
 
 @st.cache_resource
 def cargar_clasificador():
-    """BETO fine-tuned local -> BETO desde Hugging Face Hub -> TF-IDF ligero (respaldo)."""
     origen = MODELO if (MODELO / "model.safetensors").exists() else os.environ.get("HF_MODEL_ID")
     if origen:
         try:
             from transformers import pipeline
             clf = pipeline("text-classification", model=str(origen), tokenizer=str(origen), top_k=None)
             return (lambda t: {d["label"]: d["score"] for d in clf(t)[0]}), "BETO fine-tuned"
-        except Exception as e:  # pragma: no cover - sólo si falla la descarga
+        except Exception as e:
             st.warning(f"No se pudo cargar BETO ({e.__class__.__name__}); se usa el modelo ligero.")
     import joblib
     tfidf = joblib.load(MODELO / "tfidf_lr.joblib")
@@ -50,7 +48,6 @@ def cargar_clasificador():
 df = cargar_datos()
 met = cargar_metricas()
 
-# ---------------- Encabezado ----------------
 st.title("🗞️ ¿Pueden convertirse los titulares peruanos en un clasificador de noticias?")
 st.markdown(
     f"""
@@ -61,7 +58,6 @@ st.markdown(
 """
 )
 
-# ---------------- Filtros ----------------
 st.sidebar.header("Filtros")
 medios = st.sidebar.multiselect("Medio", sorted(df.medio.unique()), default=sorted(df.medio.unique()))
 cats = st.sidebar.multiselect("Categoría", CATS, default=CATS)
@@ -72,7 +68,6 @@ if isinstance(rango, tuple) and len(rango) == 2:
     fil = fil[(fil.fecha >= rango[0]) & (fil.fecha <= rango[1])]
 st.sidebar.caption(f"{len(fil)} de {len(df)} noticias seleccionadas")
 
-# ---------------- KPIs ----------------
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("Noticias recolectadas", f"{len(df)}", f"{len(fil)} en el filtro", delta_color="off")
 c2.metric("F1 macro en test (BETO)", f"{met.get('f1_macro_test', float('nan')):.3f}",
@@ -81,7 +76,6 @@ c3.metric("Acuerdo LLM vs. auditoría humana", f"{met.get('acuerdo_llm_humano_pc
           met.get("acuerdo_llm_humano", ""), delta_color="off")
 c4.metric("Acuerdo LLM vs. sección del diario", f"{met.get('acuerdo_llm_seccion', 0):.1%}")
 
-# ---------------- Probador en vivo ----------------
 st.subheader("🔮 Probador en vivo")
 clasificar, nombre_modelo = cargar_clasificador()
 col_in, col_out = st.columns([3, 2])
@@ -101,7 +95,6 @@ with col_out:
     elif boton:
         st.warning("Escribe un titular primero.")
 
-# ---------------- Exploración ----------------
 st.subheader("📊 Distribución de categorías en la selección")
 g1, g2 = st.columns(2)
 dist = fil.etiqueta.value_counts().reindex(cats).fillna(0).rename_axis("categoria").reset_index(name="noticias")

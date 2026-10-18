@@ -1,4 +1,3 @@
-"""Genera 01_recoleccion.ipynb a partir de celdas definidas aqui (luego se ejecuta con nbconvert)."""
 import nbformat as nbf
 from pathlib import Path
 
@@ -41,18 +40,17 @@ from bs4 import BeautifulSoup
 import plotly.express as px
 import plotly.io as pio
 
-# Interactivo en VS Code/Jupyter + imagen PNG para que los gráficos se vean en GitHub
 pio.renderers.default = "plotly_mimetype+png"
 pd.set_option("display.max_colwidth", 120)
 
 BASE = "https://larepublica.pe"
 MEDIO = "La Republica"
 HEADERS = {"User-Agent": "TareaCursoPython/1.0 (proyecto academico; titulares para clasificador; contacto via GitHub)"}
-PAUSA = 1.5           # segundos entre solicitudes
-OBJETIVO_POR_CAT = 115  # se descarga un poco más de 100 para cubrir descartes
+PAUSA = 1.5
+OBJETIVO_POR_CAT = 115
 DATOS = Path("datos"); RAW = DATOS / "raw"; RAW.mkdir(parents=True, exist_ok=True)
 
-REDESCARGAR = False   # True = volver a pedir RSS/sitemaps; False = reutilizar el respaldo crudo de datos/raw/
+REDESCARGAR = False
 archivo_fecha = RAW / "fecha_descarga.txt"
 if REDESCARGAR or not archivo_fecha.exists():
     archivo_fecha.write_text(datetime.now().strftime("%Y-%m-%d %H:%M"), encoding="utf-8")
@@ -75,7 +73,6 @@ sesion.headers.update(HEADERS)
 log_peticiones = []
 
 def descargar(url, reintentos=1):
-    # GET con pausa fija entre solicitudes y como máximo 1 reintento.
     for intento in range(reintentos + 1):
         time.sleep(PAUSA)
         try:
@@ -83,13 +80,12 @@ def descargar(url, reintentos=1):
             log_peticiones.append({"url": url, "status": r.status_code})
             if r.status_code == 200:
                 return r
-            if r.status_code in (403, 404, 410):   # bloqueo o inexistente: no insistir
+            if r.status_code in (403, 404, 410):
                 return r
         except requests.RequestException as e:
             log_peticiones.append({"url": url, "status": f"error: {e.__class__.__name__}"})
     return None
 
-# Demostración del bloqueo del endpoint "Ver más" (se registra y no se vuelve a usar)
 r_api = descargar(f"{BASE}/api/search/articles?category_slug=politica&limit=12&page=2&order_by=update_date&view=section", reintentos=0)
 r_tec = descargar(f"{BASE}/rss/tecnologia.xml", reintentos=0)
 print("API 'Ver más noticias' ->", r_api.status_code if r_api is not None else None)
@@ -119,11 +115,11 @@ for feed in FEEDS:
         respaldo.write_bytes(r.content)
     soup = BeautifulSoup(respaldo.read_bytes(), "xml")
     n = 0
-    for it in soup.find_all("item"):          # formato RSS
+    for it in soup.find_all("item"):
         registros_rss.append({"url": limpiar(it.link.text), "titular": limpiar(it.title.text),
                               "bajada": limpiar(it.description.text if it.description else ""),
                               "fecha_raw": limpiar(it.pubDate.text if it.pubDate else ""), "fuente": feed}); n += 1
-    for it in soup.find_all("url"):           # formato sitemap de noticias
+    for it in soup.find_all("url"):
         t = it.find("title")
         registros_rss.append({"url": limpiar(it.loc.text), "titular": limpiar(t.text if t else ""), "bajada": "",
                               "fecha_raw": limpiar(it.find("publication_date").text if it.find("publication_date") else ""),
@@ -188,7 +184,7 @@ def encolar(url):
         vistos.add(url); colas[c].append(url)
 
 for u in semillas.url: encolar(u)
-for d in list(cache.values()):          # reanudar expansión desde lo que ya está en caché
+for d in list(cache.values()):
     for e in d.get("enlaces", []): encolar(e)
 
 conteo = Counter(categoria_url(u) for u, d in cache.items() if d.get("ok"))
@@ -208,7 +204,6 @@ print("Peticiones nuevas en esta ejecución:", peticiones)
 """)
 
 code(r"""
-# Las notas de otras secciones que llegaron por RSS/home también se conservan, para reportarlas como descarte.
 filas = []
 for u in semillas.url.unique():
     if u not in cache:
@@ -265,11 +260,9 @@ fuera = df.etiqueta.isna()
 print("Secciones descartadas por no encajar:", df[fuera].seccion_original.value_counts().to_dict())
 descartar(fuera, "Sección fuera de las 4 categorías (sociedad, mundo, espectáculos, etc.)")
 
-# Notas casi idénticas que se publican a diario (p. ej. 'Precio del dólar hoy...') sesgarían el modelo: se deja 1.
 plantilla = df.titular.str.lower().str.replace(r"\d+|lunes|martes|miércoles|jueves|viernes|sábado|domingo|de (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)", "", regex=True).str[:45]
 descartar(plantilla.duplicated(), "Nota repetitiva diaria (misma plantilla de titular)")
 
-# Balance: máximo 100 por categoría (las más recientes)
 df = df.sort_values("fecha", ascending=False)
 exceso = df.groupby("etiqueta").cumcount() >= 100
 descartar(exceso, "Excedente para balancear (máx. 100 por categoría)")
@@ -289,7 +282,6 @@ fig1 = px.bar(dist, x="etiqueta", y="noticias", text="noticias", color="etiqueta
 fig1.update_layout(showlegend=False); fig1.show()
 """)
 code(r"""
-# Antigüedad de cada nota respecto a la fecha de descarga (los enlaces internos traen también notas antiguas)
 dias = (pd.Timestamp(FECHA_DESCARGA[:10]) - pd.to_datetime(df.fecha)).dt.days
 orden = ["0–7 días", "8–30 días", "1–6 meses", "más de 6 meses"]
 df["antiguedad"] = pd.cut(dias, [-1, 7, 30, 182, 10**5], labels=orden)
@@ -327,7 +319,6 @@ print(final.shape)
 final.head()
 """)
 code(r"""
-# Verificación de URLs funcionales sobre una muestra aleatoria (con pausa entre solicitudes)
 muestra = final.sample(10, random_state=42).url
 estados = {u: (descargar(u, reintentos=0) or type("x", (), {"status_code": None})).status_code for u in muestra}
 print(Counter(estados.values()))
