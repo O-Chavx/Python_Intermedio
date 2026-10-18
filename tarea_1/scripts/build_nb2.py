@@ -19,9 +19,22 @@ Flujo del notebook:
 """)
 
 code(r"""
-import os, json, time, random
+import os, json, time, random, warnings
 from datetime import datetime
 from pathlib import Path
+
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+warnings.filterwarnings("ignore")
+
+import datasets
+import huggingface_hub
+import transformers
+huggingface_hub.logging.set_verbosity_error()
+datasets.disable_progress_bars()
+transformers.logging.set_verbosity_error()
+transformers.logging.disable_progress_bar()
 
 import numpy as np
 import pandas as pd
@@ -147,7 +160,7 @@ aud = pd.read_csv(ARCHIVO_AUD).fillna("")
 completa = (aud.etiqueta_humana != "").all()
 acuerdo_n = int((aud.etiqueta_llm == aud.etiqueta_humana).sum())
 print(f"Acuerdo LLM vs. humano: {acuerdo_n}/20 = {acuerdo_n/20:.0%}" + ("" if completa else "  (AUDITORÍA INCOMPLETA)"))
-aud[["titular", "etiqueta_llm", "etiqueta_humana", "comentario"]]
+aud[["titular", "etiqueta_llm", "etiqueta_humana"]]
 """)
 
 code(r"""

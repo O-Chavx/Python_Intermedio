@@ -64,7 +64,7 @@ reglas = [l for l in robots.splitlines() if l.startswith(("Disallow", "Allow"))]
 print("\n".join(reglas))
 """)
 
-md("## 2. Funciones de descarga con pausa y 1 reintento")
+md("## 2. Funciones de descarga con pausa")
 code(r"""
 sesion = requests.Session()
 sesion.headers.update(HEADERS)
@@ -90,7 +90,7 @@ print("API 'Ver más noticias' ->", r_api.status_code if r_api is not None else 
 print("RSS tecnologia        ->", r_tec.status_code if r_tec is not None else None)
 """)
 
-md("## 3. Semillas: RSS oficiales y sitemaps de noticias (respaldo crudo en `datos/raw/`)")
+md("## 3. Semillas: RSS oficiales y sitemaps de noticias")
 code(r"""
 SECCIONES_OBJETIVO = ["politica", "economia", "deportes", "ciencia", "tecnologia"]
 FEEDS = (["rss/home.xml", "sitemap/noticias.xml", "sitemap/web/noticias.xml"]
