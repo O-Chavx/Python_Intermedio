@@ -1,0 +1,20 @@
+{
+  "herramienta": "mcp bcrp comparar_series",
+  "codigo_a": "PN09822PM",
+  "codigo_b": "PN01273PM",
+  "desde": "2020-01",
+  "hasta": "2024-12",
+  "n_comunes": 60,
+  "brecha_promedio_pp": 1.417933,
+  "mayor_brecha": {
+    "periodo": "2023-05",
+    "valor_pp": 5.177527
+  },
+  "periodos_alimentos_mayor": 44,
+  "correlacion_pearson": 0.9807,
+  "fuentes": [
+    "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN09822PM/html/2020-1/2024-12",
+    "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01273PM/html/2020-1/2024-12"
+  ],
+  "nota": "Brecha = alimentos - general (puntos porcentuales). La 'variacion_pct' de la herramienta (cambio % de una tasa) no se usa en el informe por no ser interpretable."
+}

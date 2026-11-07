@@ -1,0 +1,8 @@
+indicador,valor,metodo
+"Brecha rural - urbana, pobreza (pp)",14.49,hogares: factor07 × mieperho (salidas/indicadores.csv)
+"Razón rural / urbana, pobreza",1.58,hogares: factor07 × mieperho (salidas/indicadores.csv)
+"Brecha rural - urbana, pobreza extrema (pp)",12.38,hogares: factor07 × mieperho (salidas/indicadores.csv)
+Participación rural en la población (%),19.13,hogares: factor07 × mieperho (salidas/indicadores.csv)
+Brecha máx - mín departamental (pp),39.0,hogares: factor07 × mieperho (salidas/indicadores.csv)
+Departamentos sobre el promedio nacional,10.0,hogares: factor07 × mieperho (salidas/indicadores.csv)
+Departamentos con pobreza >= 38 %,5.0,hogares: factor07 × mieperho (salidas/indicadores.csv)

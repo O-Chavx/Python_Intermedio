@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.pytest_cache/
+# microdatos del INEI y catálogo del BCRP: se descargan (ver README)
+datos/*.zip
+datos/*.dta
+datos/catalogo_bcrp.csv
+# base procesada (se regenera con limpiando-enaho)
+salidas/*.parquet
+.env

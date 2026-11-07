@@ -1,0 +1,11 @@
+id,tipo,pregunta,verdad,verdad_2,tolerancia,fuente_esperada
+B1,bcrp,"¿Cuál fue la inflación de Lima Metropolitana en los últimos 12 meses a diciembre de 2024, en %?",1.9663,,0.01,"BCRP PN01273PM, 2024-12"
+B2,bcrp,"¿Cuál fue el tipo de cambio interbancario venta promedio de diciembre de 2024, en soles por dólar?",3.7366,,0.005,"BCRP PN01206PM, 2024-12"
+B3,bcrp,"¿Cuál era la tasa de referencia de la política monetaria del BCRP en diciembre de 2024, en %?",5.0,,0.01,"BCRP PD04722MM, 2024-12"
+B4,bcrp,"Entre enero de 2020 y diciembre de 2024, ¿cuál fue el valor máximo de la inflación a 12 meses de alimentos y bebidas en Lima Metropolitana, en %?",13.1637,,0.01,"BCRP PN09822PM, máximo en 2023-02"
+E1,enaho,"Según la ENAHO 2024, ¿qué porcentaje de la población del Perú estaba en pobreza extrema?",5.5045,,0.1,"ENAHO 2024 sumaria, factor07 × mieperho"
+E2,enaho,"Según la ENAHO 2024, ¿cuál fue la tasa de pobreza monetaria del departamento de Puno, en %?",39.9381,,0.1,"ENAHO 2024 sumaria, ubigeo 21, factor07 × mieperho"
+E3,enaho,"Según la ENAHO 2024, ¿qué porcentaje de los niños de 0 a 13 años (residentes habituales) vivía en pobreza monetaria?",37.9598,,0.1,"ENAHO 2024 módulos 02+34, facpob07"
+E4,enaho,"Según la ENAHO 2024, ¿cuál fue la tasa de pobreza monetaria del departamento de Lima (ubigeo 15, sin Callao), en %?",27.0689,,0.1,"ENAHO 2024 sumaria, ubigeo 15, factor07 × mieperho"
+C1,mixta,"En diciembre de 2024, ¿cuántos puntos porcentuales estaba la inflación a 12 meses de alimentos y bebidas de Lima por encima (positivo) o por debajo (negativo) de la inflación total? Y según la ENAHO 2024, ¿cuántos puntos superaba la pobreza rural a la urbana? Responde valor_1 y valor_2.",-0.7182,14.4958,0.05,BCRP PN09822PM − PN01273PM; ENAHO rural − urbana
+C2,mixta,"¿Cuál fue el promedio de la inflación a 12 meses de Lima en los 12 meses de 2024 (BCRP), y cuál fue la tasa de pobreza monetaria de Cajamarca según la ENAHO 2024? Responde valor_1 y valor_2.",2.355,45.0069,0.05,BCRP PN01273PM promedio 2024; ENAHO ubigeo 06

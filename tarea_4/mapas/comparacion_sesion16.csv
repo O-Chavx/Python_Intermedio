@@ -1,0 +1,8 @@
+departamento,nombre,pobreza_pct,tasa,diferencia,coincide
+06,Cajamarca,45.0,45.01,0.01,True
+16,Loreto,43.0,42.97,-0.03,True
+21,Puno,39.9,39.94,0.04,True
+08,Cusco,18.5,18.54,0.04,True
+18,Moquegua,11.0,10.97,-0.03,True
+17,Madre de Dios,11.1,11.15,0.05,True
+11,Ica,6.0,6.01,0.01,True

@@ -1,0 +1,182 @@
+[
+  {
+    "afirmacion": "Inflación de alimentos y bebidas, Lima Metropolitana (var% 12m): promedio ene-2020 a dic-2024",
+    "codigo": "PN09822PM",
+    "desde": "2020-01",
+    "hasta": "2024-12",
+    "estadistico": "promedio",
+    "valor": 5.8843,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN09822PM/html/2020-1/2024-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación general IPC, Lima Metropolitana (var% 12m): promedio ene-2020 a dic-2024",
+    "codigo": "PN01273PM",
+    "desde": "2020-01",
+    "hasta": "2024-12",
+    "estadistico": "promedio",
+    "valor": 4.4664,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01273PM/html/2020-1/2024-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación de alimentos y bebidas, Lima Metropolitana (var% 12m): máximo del periodo (2023-02)",
+    "codigo": "PN09822PM",
+    "desde": "2020-01",
+    "hasta": "2024-12",
+    "estadistico": "maximo",
+    "valor": 13.1637,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN09822PM/html/2020-1/2024-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación general IPC, Lima Metropolitana (var% 12m): máximo del periodo (2022-06)",
+    "codigo": "PN01273PM",
+    "desde": "2020-01",
+    "hasta": "2024-12",
+    "estadistico": "maximo",
+    "valor": 8.8126,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01273PM/html/2020-1/2024-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación de alimentos y bebidas, Lima Metropolitana (var% 12m): mínimo del periodo (2024-09)",
+    "codigo": "PN09822PM",
+    "desde": "2020-01",
+    "hasta": "2024-12",
+    "estadistico": "minimo",
+    "valor": 0.6877,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN09822PM/html/2020-1/2024-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación general IPC, Lima Metropolitana (var% 12m): mínimo del periodo (2020-06)",
+    "codigo": "PN01273PM",
+    "desde": "2020-01",
+    "hasta": "2024-12",
+    "estadistico": "minimo",
+    "valor": 1.5987,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01273PM/html/2020-1/2024-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación de alimentos y bebidas, Lima Metropolitana (var% 12m): ene-2020",
+    "codigo": "PN09822PM",
+    "desde": "2020-01",
+    "hasta": "2020-01",
+    "estadistico": "valor",
+    "valor": 1.1138,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN09822PM/html/2020-1/2020-1",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación general IPC, Lima Metropolitana (var% 12m): ene-2020",
+    "codigo": "PN01273PM",
+    "desde": "2020-01",
+    "hasta": "2020-01",
+    "estadistico": "valor",
+    "valor": 1.8884,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01273PM/html/2020-1/2020-1",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación de alimentos y bebidas, Lima Metropolitana (var% 12m): dic-2020",
+    "codigo": "PN09822PM",
+    "desde": "2020-12",
+    "hasta": "2020-12",
+    "estadistico": "valor",
+    "valor": 2.2367,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN09822PM/html/2020-12/2020-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación general IPC, Lima Metropolitana (var% 12m): dic-2020",
+    "codigo": "PN01273PM",
+    "desde": "2020-12",
+    "hasta": "2020-12",
+    "estadistico": "valor",
+    "valor": 1.9732,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01273PM/html/2020-12/2020-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación de alimentos y bebidas, Lima Metropolitana (var% 12m): dic-2021",
+    "codigo": "PN09822PM",
+    "desde": "2021-12",
+    "hasta": "2021-12",
+    "estadistico": "valor",
+    "valor": 7.9718,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN09822PM/html/2021-12/2021-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación general IPC, Lima Metropolitana (var% 12m): dic-2021",
+    "codigo": "PN01273PM",
+    "desde": "2021-12",
+    "hasta": "2021-12",
+    "estadistico": "valor",
+    "valor": 6.4304,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01273PM/html/2021-12/2021-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación de alimentos y bebidas, Lima Metropolitana (var% 12m): dic-2022",
+    "codigo": "PN09822PM",
+    "desde": "2022-12",
+    "hasta": "2022-12",
+    "estadistico": "valor",
+    "valor": 12.6439,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN09822PM/html/2022-12/2022-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación general IPC, Lima Metropolitana (var% 12m): dic-2022",
+    "codigo": "PN01273PM",
+    "desde": "2022-12",
+    "hasta": "2022-12",
+    "estadistico": "valor",
+    "valor": 8.4592,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01273PM/html/2022-12/2022-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación de alimentos y bebidas, Lima Metropolitana (var% 12m): dic-2023",
+    "codigo": "PN09822PM",
+    "desde": "2023-12",
+    "hasta": "2023-12",
+    "estadistico": "valor",
+    "valor": 4.8044,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN09822PM/html/2023-12/2023-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación general IPC, Lima Metropolitana (var% 12m): dic-2023",
+    "codigo": "PN01273PM",
+    "desde": "2023-12",
+    "hasta": "2023-12",
+    "estadistico": "valor",
+    "valor": 3.2374,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01273PM/html/2023-12/2023-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación de alimentos y bebidas, Lima Metropolitana (var% 12m): dic-2024",
+    "codigo": "PN09822PM",
+    "desde": "2024-12",
+    "hasta": "2024-12",
+    "estadistico": "valor",
+    "valor": 1.2481,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN09822PM/html/2024-12/2024-12",
+    "herramienta": "mcp bcrp resumen"
+  },
+  {
+    "afirmacion": "Inflación general IPC, Lima Metropolitana (var% 12m): dic-2024",
+    "codigo": "PN01273PM",
+    "desde": "2024-12",
+    "hasta": "2024-12",
+    "estadistico": "valor",
+    "valor": 1.9663,
+    "fuente": "https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PN01273PM/html/2024-12/2024-12",
+    "herramienta": "mcp bcrp resumen"
+  }
+]
